@@ -1,0 +1,100 @@
+
+                  Technology Add-On for Snort3 Json Alerts
+
+Overview
+-----------
+
+The Snort 3 for JSON Alerts Technology Add-On (TA_Snort3_json) is a Splunk Technology Add-On written by Noah Dietrich for inputing alert data created by a Snort 3 IDS in JSON format.
+
+This Technology Add-On (TA) normalizes Snort 3 alert data output with the alert_json plugin to make it compliant with the "Intrusion Detection" model of the Splunk Comon Information Model (CIM).
+
+The public repository for this TA is: https://github.com/NDietrich/Splunk-Snort3-TA.
+
+Snort 3 is currently a Beta product. It should not be used in production or misison-cricical enviornments, and is avaliable primarily for testing purposes.  Because of this, it is possible that future modifications to Snort 3 will break this plugin. This plugin has been released before the final version of Snort 3 has been finalized to solicit feedback, including feature requests and bug reports.
+
+Installation & Configuration
+----------------------------
+
+More detailed configuration instructions for Snort 3 can be found at https://SublimeRobots.com/.
+
+Please see the included document "Configuring the Snort 3 alert_json Output Plugin.pdf" to verify that you have configured Snort 3 to generate the json files correctly.
+
+Installation: This TA should be installed wherever the Snort 3 JSON logs are collected, such as on any Heavy or Universal Forwarders (UF), as well as all Splunk servers where the data may be stored or searched, including Indexers and Search Heads.
+
+Configuration: The TA must be configured wherever Snort 3 JSON logs are collected (usually on your UF).  You do not need to modify this TA on any Splunk servers that are not actively collecting logs (you don't need to modify this TA on your indexers or search heads, it just needs to be installed).
+
+On the Splunk servers where you will be collecing log files, you will need to modify this plugin to specify the location of your Snort 3 JSON files.  This can be acomplished by creating a new inputs.conf file in the TA_Snort3_json application local folder. Do not modify the ./default/inputs.conf file directly.
+
+Create a new ./local/inputs.conf file in the TA_Snort3_json folder. This file should be located at:
+  $SPLUNK_HOME/etc/apps/TA_Snort3_json/local/inputs.conf
+
+You must place a 'monitor' stanza in the local inputs.conf file that contains the path to the folder containing the Snort 3 alert JSON files. For example, if your files are located in /var/log/snort (a common location), your ./local/inputs.conf file should contain the following two lines:
+
+[monitor:///var/log/snort/*alert_json.txt.*]
+sourcetype = snort3:alert:json
+
+These lines are required, and will allow Splunk to index all Snort 3 json alert log files in the /var/log/snort folder (and sub-folders).
+
+Restart Splunk on the server where you modified this inputs.conf file. Splunk will index existing Snort 3 json files in this folder and sub-folders.
+
+
+Additoinal TA configuration options:
+------------------------------------
+
+If you want to save these events to a different index,  modify the 'monitor' section you created above as follows:
+
+[monitor:///var/log/snort/*alert_json.txt.*]
+sourcetype = snort3:alert:json
+index = another-index-name
+
+IF you do not want to monitor sub-folders of the initial folder (say if you're rotating logs to a sub-folder), you can disable recursion:
+
+[monitor:///var/log/snort/*alert_json.txt.*]
+sourcetype = snort3:alert:json
+recursive = false
+
+
+Searching Snort 3 events:
+------------------------- 
+
+Once your indexer is collecting Snort 3 events, you can search for them simply by searching by sourcetype:
+	search sourcetype=snort3:alert:json
+
+you can also use the following tags (this could return events from other IDS's if you have them):
+	search tag=ids AND tag=attack
+
+
+Recomended supporting Add-ons:
+------------------------------
+
+* base64  https://splunkbase.splunk.com/app/1922/
+This TA needs to be manually installed (the author has not formally tested it with the newer versions of Splunk, but it seems to work). This TA provides the ability to convert the packet data (stored in the b64_data field) into readable info.  in the example below, the 2nd line takes advantage of this new TA to display the data in the packet in a table that's readable:
+
+	sourcetype=snort3:alert:json b64_data = *
+	| base64 field=b64_data action=decode mode=replace
+	| table gid, sid, priority, class, msg, b64_data
+
+This becomes very helpful when looking at the contents of alerts containing SMTP and FTP data, web URI's, and shellcode.
+
+
+Additional Notes:
+-----------------
+
+The b64_data data field is repsonsible for most of the data created by the plugin. If you are worried about space, and don't need the packet data, then you can omit this field in the alert_json Snort configuration file snort.lua.  In my testing, I have found that 10 MB of log data with all fields enabled (including the b64_data field) contains aproximately 10,000 events, while removing the b64_data field fit 15,000 events in 10 MB.
+
+Licensing
+---------
+
+This Technology Add-On is released under the GPL v3, except where otherwise noted. Please see the LICENSE file in this folder.
+
+
+Contacts & Support
+------------------
+This TA is community developed and supported. Therefore: feature requests and bug reports can be submitted at the github respository: 
+    - https://github.com/NDietrich/Splunk-Snort3-TA
+
+Questions about this TA can be posted through Splunk Answers:
+	- https://answers.splunk.com/index.html
+
+Or can be sent to:
+	- Noah@SublimeRobots.com

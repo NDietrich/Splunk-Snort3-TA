@@ -1,0 +1,32 @@
+Copyright (C) 2019 Noah Dietrich
+
+This Splunk Add on (TA_Snort3_json) is licensed under  the GNU GENERAL PUBLIC LICENSE Version 3 except where noted below.  See COPYING in this folder or https://www.gnu.org/licenses/gpl.txt for the license.
+
+    TA_Snort3_json is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TA_Snort3_json is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TA_Snort3_json.  If not, see <https://www.gnu.org/licenses/>.
+
+
+The following icon files are covered by the Creative Commons Attribution-Share Alike 4.0 International license:
+./static/appIcon.png
+./static/appIcon_2x.png
+./static/appIconAlt.png
+./static/appIconAlt_2x.png
+
+These icons are a modified version of the following file:
+	FileName: 		Emojione_BW_1F437.svg
+	Attribution: 	Emoji One
+	Soure file: 	https://commons.wikimedia.org/wiki/File:Emojione_BW_1F437.svg
+	License: 		Creative Commons Attribution-Share Alike 4.0 International license. 
+	License URL: 	https://creativecommons.org/licenses/by-sa/4.0/deed.en
+
+All these icon files included with this app remain under the Creative Commons Attribution-Share Alike 4.0 International license.
