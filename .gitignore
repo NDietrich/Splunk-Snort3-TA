@@ -4,4 +4,8 @@
 /src/build/
 
 # the SPL file should not be tracked
-src/TA_Snort3_json.spl
+/src/TA_Snort3_json.spl
+
+# ignore when we're creating new json sample files
+
+/sample\ JSON\ data/alert_json.txt.1*
