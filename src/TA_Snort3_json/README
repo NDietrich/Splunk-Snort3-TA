@@ -1,5 +1,6 @@
 
-                  Technology Add-On for Snort3 Json Alerts
+Technology Add-On for Snort3 Json Alerts
+========================================
 
 Overview
 -----------
@@ -27,8 +28,8 @@ Ensure that you have installed Snort 3, and it is correctly outputting alerts in
 In your json output files, make sure that 'seconds' field is the very first field output for each alert.  The alert_json plugin is configured in the snort.lua file.  In the example below, you can see the following output options:
 
 - fields:  The 'seconds' field is the first field listed (and thus the first field in the output).  The example here is outputting every possible field.  You can probably remove some of these fields after testing to determine if they are necessary, such as the vlan or mpls fields.
-- file:  We are outputting to a file (the alert_json.txt file).
-- limit:  Each json file will be 100 MB before it rolls over to a new file (named alert_json.txt.*epochtime*).
+- file"  We are o utputting to a file (the alert_json.txt file).
+- limit: Each json file will be 100 MB before it rolls over to a new file (named alert_json.txt.*epochtime*).
 
 ```
 --- in your snort.lua file
@@ -55,8 +56,8 @@ Create a new ./local/inputs.conf file in the TA_Snort3_json folder. This file sh
 
 You must place a 'monitor' stanza in the local inputs.conf file that contains the path to the folder containing the Snort 3 alert JSON files. For example, if your files are located in /var/log/snort (a common location), your ./local/inputs.conf file should contain the following two lines:
 
-[monitor:///var/log/snort/*alert_json.txt*]
-sourcetype = snort3:alert:json
+    [monitor:///var/log/snort/*alert_json.txt*]
+    sourcetype = snort3:alert:json
 
 These lines are required, and will allow Splunk to index all Snort 3 json alert log files in the /var/log/snort folder (and sub-folders).
 
@@ -73,7 +74,7 @@ The following settings for you local inputs.conf file are available if you have 
 	sourcetype = snort3:alert:json
 	index = another-index-name
 
-IF you do not want to monitor sub-folders of the initial folder (say if you're rotating logs to a sub-folder), you can disable recursion:
+If you do not want to monitor sub-folders of the initial folder (say if you're rotating logs to a sub-folder), you can disable recursion:
 
 	# in your $SPLUNK_HOME/etc/apps/TA_Snort3_json/local/inputs.conf file
 	[monitor:///var/log/snort/*alert_json.txt*]
@@ -85,21 +86,24 @@ Searching Snort 3 events:
 ------------------------- 
 
 Once your indexer is collecting Snort 3 events, you can search for them simply by searching by sourcetype:
+
 	search sourcetype=snort3:alert:json
 
 you can also use the following tags (this could return normalized events from other NIDS's if you have them):
+
 	search tag=ids AND tag=attack
 
 
 Recommended supporting Add-ons:
 ------------------------------
 
-* base64  https://splunkbase.splunk.com/app/1922/
+* base64:  https://splunkbase.splunk.com/app/1922/
 This TA needs to be manually installed (the author has not formally tested it with the newer versions of Splunk, but it seems to work). This TA provides the ability to convert the packet data (stored in the b64_data field) into readable info.  in the example below, the 2nd line takes advantage of this new TA to display the data in the packet in a table that's readable:
-
-	sourcetype=snort3:alert:json b64_data = *
-	| base64 field=b64_data action=decode mode=replace
-	| table gid, sid, priority, class, msg, b64_data
+```
+    sourcetype=snort3:alert:json b64_data = *
+    | base64 field=b64_data action=decode mode=replace
+    | table gid, sid, priority, class, msg, b64_data
+```
 
 This becomes very helpful when looking at the contents of alerts containing SMTP and FTP data, web URI's, and shell code.
 
