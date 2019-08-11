@@ -59,6 +59,30 @@ To verify the TA .spl file is valid, you can use Splunk's [AppInspect](http://de
 
 Once you've created the spl file, you can upload it to your Splunk Server through the [web interface](https://docs.splunk.com/Documentation/AddOns/released/Overview/Singleserverinstall), through your deployment server (if using), through the [CLI](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Managingappobjects#Update_an_app_or_add-on_in_the_CLI), or by just copying the .spl file into the app directory on your server ($SPLUNK_HOME/etc/apps/).  This last option is how the 'install' and 'local-install' MAKE targets work.  An overview of deployment options is [avaliable](https://docs.splunk.com/Documentation/Splunk/7.2.1/Admin/Deployappsandadd-ons).
 
+# Verifying your Data is Normalized Correctly
+To Verify that Splunk has correctly normalized your data to match the CIM for [Network Intrusion Detection](https://docs.splunk.com/Documentation/CIM/latest/User/IntrusionDetection), you first need a couple of Splunk Add-Ons installed on your search head:
+- [Splunk Common Information Model](https://splunkbase.splunk.com/app/1621/)
+install of Datasets Add-on
+- [Splunk Datasets Add-on](https://splunkbase.splunk.com/app/3245/)
+
+After installation of these plugins and your Splunk-Snort3-TA, make sure the logged events are in your default index, then:
+1. Choose *Search*, and then choose *datasets*.
+2. Choose *Intrusion Detection > IDS Attacks > Network Intrusion Detection*.
+3. Choose a time range that includes the events you want.
+click "sumarize fields".
+4. Look for events that aren't fully green. Some won't have any events at all (such as the dest_ and dvc_ events).
+
+Alternately, you can check your data with a search:
+    | datamodel Intrusion_Detection Network_IDS_Attacks search 
+    | search sourcetype="snort3:alert:json" 
+    | table * 
+    | fieldsummary
+Look for any fields with a different event count from the total number of events for data that's not tagged right.
+
+# Sample JSON Data
+in the [sample JSON data](./sample\ JSON\ data\) folder, there are a number of json files from snort3 that contain alerts. You can use the *update_epochtime.sh* bash script in this folder to modify the time of all the events in these json files so that they are fresh (not old).  New copies of the alert files will be created with current epochtime in the filename (to make them obviously different from the original logs).
+copy these modified files to your Splunk server that's collecting the log files to test your settings.
+
 # Requesting Help
 Please submit bug and feature requests via Github for this project, or email Noah@SublimeRobots.com.  Please include as much information as possible with your request.  This TA is not professionally supported (it is a volunteer project), so issues may not be fixed immediately, but I will make every effort to reply.
 
