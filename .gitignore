@@ -13,3 +13,6 @@
 # ignore md files that have been converted to html files
 /README.html
 /src/TA_Snort3_json/README.html
+
+# let's not push the gitignore file up either
+/.gitignore
