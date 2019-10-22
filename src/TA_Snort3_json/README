@@ -28,7 +28,7 @@ Ensure that you have installed Snort 3, and it is correctly outputting alerts in
 In your json output files, make sure that 'seconds' field is the very first field output for each alert.  The alert_json plugin is configured in the snort.lua file.  In the example below, you can see the following output options:
 
 - fields:  The 'seconds' field is the first field listed (and thus the first field in the output).  The example here is outputting every possible field.  You can probably remove some of these fields after testing to determine if they are necessary, such as the vlan or mpls fields.
-- file"  We are o utputting to a file (the alert_json.txt file).
+- file:  We are outputting to a file (the alert_json.txt file).
 - limit: Each json file will be 100 MB before it rolls over to a new file (named alert_json.txt.*epochtime*).
 
 ```
