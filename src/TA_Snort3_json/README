@@ -97,15 +97,16 @@ you can also use the following tags (this could return normalized events from ot
 Recommended supporting Add-ons:
 ------------------------------
 
-* base64:  https://splunkbase.splunk.com/app/1922/
-This TA needs to be manually installed (the author has not formally tested it with the newer versions of Splunk, but it seems to work). This TA provides the ability to convert the packet data (stored in the b64_data field) into readable info.  in the example below, the 2nd line takes advantage of this new TA to display the data in the packet in a table that's readable:
-```
-    sourcetype=snort3:alert:json b64_data = *
-    | base64 field=b64_data action=decode mode=replace
-    | table gid, sid, priority, class, msg, b64_data
+* Decrypt:  https://splunkbase.splunk.com/app/2655
+This TA provides the ability to convert the packet data (stored in the b64_data field) into readable info.  in the example below, the 2nd line takes advantage of this new TA to display the URI data from web reqests:
 ```
 
-This becomes very helpful when looking at the contents of alerts containing SMTP and FTP data, web URI's, and shell code.
+    sourcetype=snort3:alert:json b64_data = * dst_port=80
+    | decrypt field=b64_data atob emit('decrypted')
+    | table gid, sid, priority, class, msg, decrypted
+```
+
+This becomes very helpful when looking at the contents of alerts containing URIs, SMTP and FTP data, web URI's, and shell code.
 
 
 Additional Notes:
