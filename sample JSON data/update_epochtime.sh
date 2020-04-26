@@ -37,7 +37,7 @@ for f in $FILES; do
     done < "$f"
 
 	# sort the file in-place
-	sort -r -o alert_json.txt.$currentTime alert_json.txt.$currentTime
+	sort -o alert_json.txt.$currentTime alert_json.txt.$currentTime
 
 	# change $currentTime back 1 hour for next iteration
 	currentTime=$(( $currentTime - 3600))
