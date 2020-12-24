@@ -1,13 +1,12 @@
-
 Technology Add-On for Snort3 Json Alerts
 ========================================
 
 Overview
 -----------
 
-The Snort 3 for JSON Alerts Technology Add-On (TA_Snort3_json) is a Splunk Technology Add-On written by Noah Dietrich for ingesting and normalizing alert data created by a Snort 3 IDS in JSON format.
+The Snort 3 for JSON Alerts Technology Add-On (TA_Snort3_json) is a Splunk Technology Add-On for ingesting and normalizing alert and OpenAppID data created by a Snort 3.
 
-This Technology Add-On (TA) normalizes Snort 3 alerts that are written with Snort 3's alert_json plugin to make it compliant with the "Network Intrusion Detection" model of the Splunk Common Information Model (CIM).
+This Technology Add-On (TA) normalizes Snort 3 alerts that are written with Snort 3's alert_json plugin to make it compliant with the "Network Intrusion Detection" model of the Splunk Common Information Model (CIM).  This TA also injests OpenAppID data from Snort 3 from the appid_listener plugin.
 
 The public repository for this TA is: https://github.com/NDietrich/Splunk-Snort3-TA.
 
@@ -18,7 +17,6 @@ Snort 3 is currently a Beta product. It should not be used in production or miss
 
 Installation & Configuration
 ----------------------------
-
 More detailed configuration instructions for Snort 3 can be found at https://SublimeRobots.com/.
 
 Configuring Snort 3 json_alerts Output Plugin
@@ -27,7 +25,7 @@ Ensure that you have installed Snort 3, and it is correctly outputting alerts in
 
 In your json output files, make sure that 'seconds' field is the very first field output for each alert.  The alert_json plugin is configured in the snort.lua file.  In the example below, you can see the following output options:
 
-- fields:  The 'seconds' field is the first field listed (and thus the first field in the output).  The example here is outputting every possible field.  You can probably remove some of these fields after testing to determine if they are necessary, such as the vlan or mpls fields.
+- fields:  The 'seconds' field is the first field listed (and thus the first field in the output).  The example below outputs every possible field.  You can probably remove some of these fields after testing to determine if they are necessary, such as the vlan or mpls fields.
 - file:  We are outputting to a file (the alert_json.txt file).
 - limit: Each json file will be 100 MB before it rolls over to a new file (named alert_json.txt.*epochtime*).
 
@@ -40,6 +38,23 @@ alert_json =
     limit = 100,
 }
 ```
+
+Configuring Snort 3 appid_listener Output Plugin
+---------------------------------------------
+Make sure to install the latest OpenAppID detector package and the Snort Extras package. Add the following to your snort.lua file:
+```
+appid =
+{
+    app_detector_dir = '/usr/local/lib',
+}
+
+appid_listener =
+{
+    json_logging = true,
+    file = "/var/log/snort/appid-output.log",
+}
+```
+
 
 Installation of this TA
 -----------------------
@@ -54,12 +69,17 @@ On the Splunk servers where you will be collecting log files, you must modify th
 Create a new ./local/inputs.conf file in the TA_Snort3_json folder. This file should be located at:
   $SPLUNK_HOME/etc/apps/TA_Snort3_json/local/inputs.conf
 
-You must place a 'monitor' stanza in the local inputs.conf file that contains the path to the folder containing the Snort 3 alert JSON files. For example, if your files are located in /var/log/snort (a common location), your ./local/inputs.conf file should contain the following two lines:
+For alert data: you must place a 'monitor' stanza in the local inputs.conf file that contains the path to the folder containing the Snort 3 alert JSON files. For example, if your files are located in /var/log/snort (a common location), your ./local/inputs.conf file should contain the following two lines:
 
     [monitor:///var/log/snort/*alert_json.txt*]
     sourcetype = snort3:alert:json
 
 These lines are required, and will allow Splunk to index all Snort 3 json alert log files in the /var/log/snort folder (and sub-folders).
+
+For OpenAppID data, add the following section to the same ./local/inputs.conf:
+
+    [monitor:///var/log/snort/*appid-output.log*]
+    sourcetype = snort3:openappid:json
 
 Restart Splunk on the server where you created this inputs.conf file. Splunk will index existing Snort 3 json files in this folder and sub-folders.
 
@@ -69,7 +89,7 @@ Optional Input Configuration Options
 
 The following settings for you local inputs.conf file are available if you have specific needs.  For example, if you want to save these events to a different index, add the following line specifying the index name:
 
-	# in your $SPLUNK_HOME/etc/apps/TA_Snort3_json/local/inputs.conf file
+    # in your $SPLUNK_HOME/etc/apps/TA_Snort3_json/local/inputs.conf file
 	[monitor:///var/log/snort/*alert_json.txt*]
 	sourcetype = snort3:alert:json
 	index = another-index-name
@@ -82,7 +102,7 @@ If you do not want to monitor sub-folders of the initial folder (say if you're r
 	recursive = false
 
 
-Searching Snort 3 events:
+Searching Snort 3 Alerts:
 ------------------------- 
 
 Once your indexer is collecting Snort 3 events, you can search for them simply by searching by sourcetype:
@@ -93,16 +113,20 @@ you can also use the following tags (this could return normalized events from ot
 
 	search tag=ids AND tag=attack
 
+Searching OpenAppID data
+------------------------- 
+Once your indexer is collecting Snort 3 OpenAppID data, you can search for them simply by searching by sourcetype:
+
+	search sourcetype=snort3:openappid:json
 
 Recommended supporting Add-ons:
 ------------------------------
 
-* Decrypt:  https://splunkbase.splunk.com/app/2655
+* CyberChef:  https://splunkbase.splunk.com/app/5348/
 This TA provides the ability to convert the packet data (stored in the b64_data field) into readable info.  in the example below, the 2nd line takes advantage of this new TA to display the URI data from web reqests:
 ```
-
     sourcetype=snort3:alert:json b64_data = * dst_port=80
-    | decrypt field=b64_data atob emit('decrypted')
+    | cyberchef infield = b64_data outfield=decrypted operation="FromBase64" 
     | table gid, sid, priority, class, msg, decrypted
 ```
 
@@ -112,7 +136,7 @@ This becomes very helpful when looking at the contents of alerts containing URIs
 Additional Notes:
 -----------------
 
-The b64_data data field is responsible for most of the data created by the plugin. If you are worried about Splunk license usage, and don't need the packet data, then you can omit this field in the alert_json Snort configuration file snort.lua.  In my testing, I have found that 10 MB of log data with all fields enabled (including the b64_data field) contains approximately 10,000 events, while removing the b64_data field fit 15,000 events in 10 MB.
+The b64_data data field is responsible for most of the data created by the plugin. If you are worried about Splunk license usage, and don't need the packet data, then you can omit this field in the alert_json Snort configuration file snort.lua.  In my testing, I have found that the b64_data field increases the event size by 50%.
 
 Licensing
 ---------
@@ -130,4 +154,3 @@ Questions about this TA can be posted through Splunk Answers:
 
 Or can be sent to:
 	- Noah@SublimeRobots.com
-	
